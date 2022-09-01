@@ -9,6 +9,7 @@ on:
 # Won't run on pull_request_target, ie forked repos.
 permissions:
   pull-requests: write
+  actions: read
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
