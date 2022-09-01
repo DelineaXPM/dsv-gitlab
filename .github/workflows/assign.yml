@@ -15,9 +15,9 @@ jobs:
     timeout-minutes: 5
     # Scoped to only internal opened pr's
     # Won't run on pull_request_target, ie forked repos.
-    permissions:
-      pull-requests: write
-      id-token: read
+    # permissions:
+    #   pull-requests: write
+    #   id-token: read
     steps:
       - uses: kentaro-m/auto-assign-action@60730395fd3afb76c7407e16cd4b144fbbcf28a6 # renovate: tag=v1
         with:
