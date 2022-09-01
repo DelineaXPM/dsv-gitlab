@@ -1,9 +1,9 @@
 ---
 name: assign
 on:
-  pull_request: # For testing changes in branch
-  # pull_request_target:
-  #types: [opened, ready_for_review]
+  # pull_request: # For testing changes in branch
+  pull_request_target:
+    types: [opened, ready_for_review]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,18 +16,7 @@ jobs:
 
     permissions:
       pull-requests: write
-      # actions: read
-      # checks: read
-      contents: read
-      # deployments: read
-      #id-token: read
-      # issues: read
-      # discussions: read
-      # packages: read
-      # pages: read
-      # repository-projects: read
-      # security-events: read
-      statuses: read
+      contents: read # Because it needs to read the configuration file
     steps:
       - uses: kentaro-m/auto-assign-action@60730395fd3afb76c7407e16cd4b144fbbcf28a6 # renovate: tag=v1
         with:
