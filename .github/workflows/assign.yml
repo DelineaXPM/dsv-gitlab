@@ -16,7 +16,7 @@ jobs:
 
     permissions:
       pull-requests: write
-      # id-token: read
+      id-token: read
     steps:
       - uses: kentaro-m/auto-assign-action@60730395fd3afb76c7407e16cd4b144fbbcf28a6 # renovate: tag=v1
         with:
