@@ -16,9 +16,9 @@ jobs:
 
     permissions:
       pull-requests: write
-      actions: read
-      checks: read
-      # contents: read
+      # actions: read
+      # checks: read
+      contents: read
       # deployments: read
       #id-token: read
       # issues: read
