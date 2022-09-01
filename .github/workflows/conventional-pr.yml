@@ -1,13 +1,11 @@
 ---
 name: conventional-commit-pr-title
-
 on:
   pull_request_target:
     types:
       - opened
       - edited
       - synchronize
-
 jobs:
   main:
     name: conventional-commit-pr-title
