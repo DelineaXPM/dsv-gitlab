@@ -1,4 +1,4 @@
-module github.com/DelineaXPM/REPLACEME
+module github.com/DelineaXPM/dsv-gitlab
 
 go 1.19
 

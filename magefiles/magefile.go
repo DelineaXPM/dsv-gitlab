@@ -4,7 +4,7 @@ package main
 import (
 	"os"
 
-	"github.com/DelineaXPM/REPLACEME/magefiles/constants"
+	"github.com/DelineaXPM/dsv-gitlab/magefiles/constants"
 
 	"github.com/magefile/mage/mg"
 	"github.com/pterm/pterm"
