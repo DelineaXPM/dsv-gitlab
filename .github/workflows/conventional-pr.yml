@@ -1,8 +1,8 @@
 ---
 name: conventional-commit-pr-title
 on:
-  # pull_request_target: after finish testing
-  pull_request:
+  pull_request_target:
+    # pull_request:
     types:
       - opened
       - edited
