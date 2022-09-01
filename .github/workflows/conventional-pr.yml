@@ -43,4 +43,4 @@ jobs:
             ignore-semantic-pull-request
           headerPattern: '^(\w*)(?:\(([\w$.\-*/ ]*)\))?: (.*)$'
           headerPatternCorrespondence: type, scope, subject
-          wip: true
+          wip: false # This requires elevated permissions, not using
