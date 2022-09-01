@@ -1,11 +1,13 @@
 ---
-name: Close stale issues and PRs
+name: stale
 on:
   schedule:
     - cron: 30 1 * * *
+
 permissions:
   issues: write
   pull-requests: write
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -14,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Config Options: https://github.com/actions/stale#list-of-input-options
-      - uses: actions/stale@v5
+      - uses: actions/stale@532554b8a8498a0e006fbcde824b048728c4178f # renovate: tag=v5
         with:
           days-before-stale: 30
           days-before-close: 5

@@ -1,9 +1,14 @@
 ---
 name: assign
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, ready_for_review]
-  workflow_dispatch:
+
+# Scoped to only internal opened pr's
+# Won't run on pull_request_target, ie forked repos.
+permissions:
+  pull-requests: write
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -13,6 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: kentaro-m/auto-assign-action@v1.2.1
+      - uses: kentaro-m/auto-assign-action@60730395fd3afb76c7407e16cd4b144fbbcf28a6 # renovate: tag=v1
         with:
           configuration-path: .github/auto-assign.yml # Only needed if you use something other than .github/auto_assign.yml
