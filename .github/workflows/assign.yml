@@ -1,9 +1,8 @@
 ---
 name: assign
 on:
-  pull_request:
+  pull_request_target:
     types: [opened, ready_for_review]
-  workflow_dispatch:
 
 # Scoped to only internal opened pr's
 # Won't run on pull_request_target, ie forked repos.
