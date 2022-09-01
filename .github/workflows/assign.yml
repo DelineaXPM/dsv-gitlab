@@ -16,7 +16,18 @@ jobs:
 
     permissions:
       pull-requests: write
-
+      actions: read
+      checks: read
+      contents: read
+      deployments: read
+      id-token: read
+      issues: read
+      discussions: read
+      packages: read
+      pages: read
+      repository-projects: read
+      security-events: read
+      statuses: read
     steps:
       - uses: kentaro-m/auto-assign-action@60730395fd3afb76c7407e16cd4b144fbbcf28a6 # renovate: tag=v1
         with:
