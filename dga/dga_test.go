@@ -405,7 +405,7 @@ func TestOpenEnvFile(t *testing.T) {
 			for key, val := range tc.envs {
 				os.Setenv(key, val)
 			}
-			_, err := dga.ActionsOpenEnvFile(cfg)
+			_, err := dga.OpenEnvFile(cfg)
 			if tc.shouldFail {
 				is.True(err != nil) // Should fail.
 			} else {

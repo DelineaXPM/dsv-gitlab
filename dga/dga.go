@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -23,8 +24,8 @@ const defaultTimeout = time.Second * 5
 const PermissionReadWriteOwner = 0o600
 
 type Config struct {
-	IsCI    bool `env:"GITHUB_ACTIONS"` // IsCI determines if the system is detecting being in CI system.
-	IsDebug bool `env:"RUNNER_DEBUG"`   // IsDebug is based on github action flagging as debug/trace level.
+	IsCI    bool `env:"GITLAB_CI"` // IsCI determines if the system is detecting being in CI system.
+	IsDebug bool `env:"DEBUG"`     // IsDebug is based on gitlab flagging as debug/trace level.
 
 	// DSV SPECIFIC ENV VARIABLES.
 
@@ -35,32 +36,29 @@ type Config struct {
 	RetrieveEnv     string `env:"DSV_RETRIEVE,required"`               // JSON formatted string with data to retrieve from DSV.
 }
 
-// RetrieveValues is the struct to put keyvalues into
-//
-//	type RetrieveValues struct {
-//		SecretToRetrieve []SingleValue
-//	}
 type SecretToRetrieve struct {
 	SecretPath     string `json:"secretPath"`
 	SecretKey      string `json:"secretKey"`
 	OutputVariable string `json:"outputVariable"`
 }
 
-// getGithubEnv reads fromt he current step target github action
-// The path on the runner to the file that sets environment variables from workflow commands.
-// This file is unique to the current step and changes for each step in a job.
-// For example, /home/runner/work/_temp/_runner_file_commands/set_env_87406d6e-4979-4d42-98e1-3dab1f48b13a.
-// For more information, see "Workflow commands for GitHub Actions.".
-// https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#environment-files
-// The step that creates or updates the environment variable does not have access to the new value, but all subsequent steps in a job will have access.
-func (cfg *Config) getGithubEnv() (string, error) {
-	githubenv, isSet := os.LookupEnv("GITHUB_ENV")
+// getEnvFileName helps retrieve and build a env file path that should contain
+// the resulting secrets. See [GitLab - Passing An Environment Variable to Another Job](https://docs.gitlab.com/ee/ci/variables/#pass-an-environment-variable-to-another-job)
+func (cfg *Config) getEnvFileName() (string, error) {
+	jobName, isSet := os.LookupEnv("CI_JOB_NAME")
 	if !isSet {
-		return "", fmt.Errorf("GITHUB_ENV is not set")
+		return "", fmt.Errorf("CI_JOB_NAME is not set")
 	}
-	pterm.Debug.Printfln("GITHUB_ENV: %s", githubenv)
-	pterm.Success.Printfln("getGithubEnv() success")
-	return githubenv, nil
+
+	projPath, isSet := os.LookupEnv("CI_PROJECT_PATH")
+	if !isSet {
+		return "", fmt.Errorf("CI_PROJECT_PATH is not set")
+	}
+
+	envFileName := filepath.Join("/builds/", projPath, jobName)
+	pterm.Debug.Printfln("envfilename: %s", envFileName)
+	pterm.Success.Printfln("getEnvFileName() success")
+	return envFileName, nil
 }
 
 // configure Pterm settings for project based on the detected environment.
@@ -71,25 +69,12 @@ func (cfg *Config) configureLogging() {
 	pterm.Error = *pterm.Error.WithShowLineNumber().WithLineNumberOffset(1) //nolint:reassign // changing prefix later, not an issue.
 	pterm.Warning = *pterm.Warning.WithShowLineNumber().WithLineNumberOffset(1)
 	pterm.Warning = *pterm.Error.WithShowLineNumber().WithLineNumberOffset(1)
-
-	pterm.Error.Prefix = pterm.Prefix{
-		Text:  "::error ",
-		Style: &pterm.Style{},
-	}
-	pterm.Debug.Prefix = pterm.Prefix{
-		Text:  "::debug ",
-		Style: &pterm.Style{},
-	}
-	pterm.Warning.Prefix = pterm.Prefix{
-		Text:  "::warning ",
-		Style: &pterm.Style{},
-	}
 	pterm.Success.Printfln("configureLogging() success")
 }
 
 func (cfg *Config) sendRequest(c HTTPClient, req *http.Request, out any) error {
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Delinea-DSV-Client", "github-action")
+	req.Header.Set("Delinea-DSV-Client", "gitlab-action")
 	resp, err := c.Do(req)
 	if err != nil {
 		pterm.Error.Printfln("sendRequest: %+v", err)
@@ -164,9 +149,9 @@ func Run() error { //nolint:funlen,cyclop // funlen: this could use refactoring 
 
 	// This function will only run if both is CI and SetEnv is detected.
 	if cfg.IsCI && cfg.SetEnv {
-		envFile, err = ActionsOpenEnvFile(&cfg)
+		envFile, err = OpenEnvFile(&cfg)
 		if err != nil {
-			pterm.Error.Printfln("unable to run actionsopenEnvFile: %v", err)
+			pterm.Error.Printfln("unable to run OpenEnvFile: %v", err)
 			return err
 		}
 		defer envFile.Close()
@@ -200,12 +185,11 @@ func Run() error { //nolint:funlen,cyclop // funlen: this could use refactoring 
 		}
 
 		outputKey := item.OutputVariable
-		actionSetOutput(outputKey, val) // TODO: this needs to be correctly set to use the right output variable.
 		pterm.Debug.Printfln("%q: Set output %q to value in %q", item.SecretPath, outputKey, item.SecretKey)
 		pterm.Success.Printfln("actionSetOutput success: %q", outputKey)
 
 		if cfg.SetEnv {
-			if err := ActionsExportVariable(envFile, outputKey, val); err != nil { // TODO: this needs to be correctly set to use the right output variable.
+			if err := ExportEnvVariable(envFile, outputKey, val); err != nil { // TODO: this needs to be correctly set to use the right output variable.
 				pterm.Error.Printfln("%q: unable to export env variable: %v", outputKey, err)
 				return fmt.Errorf("cannot set environment variable")
 			}
@@ -280,17 +264,14 @@ func DSVGetSecret(client HTTPClient, apiEndpoint, accessToken string, item Secre
 	return resp, nil
 }
 
-func actionSetOutput(key, val string) {
-	fmt.Printf("::set-output name=%s::%s\n", key, val)
-}
+// OpenEnvFile storing secrets that can extend to another job or task in Gitlab.
+// See [GitLab - Passing An Environment Variable to Another Job](https://docs.gitlab.com/ee/ci/variables/#pass-an-environment-variable-to-another-job)
+func OpenEnvFile(cfg *Config) (*os.File, error) {
+	pterm.Info.Println("OpenEnvFile()")
 
-// ActionsOpenEnvFile is used for writing secrets back in GitHub.
-func ActionsOpenEnvFile(cfg *Config) (*os.File, error) {
-	pterm.Info.Println("actionsopenEnvFile()")
-
-	envFileName, err := cfg.getGithubEnv()
+	envFileName, err := cfg.getEnvFileName()
 	if err != nil {
-		return nil, fmt.Errorf("GITHUB_ENV environment is not defined")
+		return nil, fmt.Errorf("GITLAB_CI environment is not defined")
 	}
 	_, err = os.Stat(envFileName)
 	if err != nil {
@@ -314,11 +295,11 @@ func ActionsOpenEnvFile(cfg *Config) (*os.File, error) {
 	if err != nil {
 		return nil, fmt.Errorf("general error cannot open file %s: %w", envFileName, err)
 	}
-	pterm.Success.Printfln("actionsopenEnvFile() success")
+	pterm.Success.Printfln("OpenEnvFile() success")
 	return envFile, nil
 }
 
-func ActionsExportVariable(envFile *os.File, key, val string) error {
+func ExportEnvVariable(envFile *os.File, key, val string) error {
 	pterm.Info.Println("actionsExportVariable()")
 	if _, err := envFile.WriteString(fmt.Sprintf("%s=%s\n", strings.ToUpper(key), val)); err != nil {
 		return fmt.Errorf("could not update %s environment file: %w", envFile.Name(), err)
