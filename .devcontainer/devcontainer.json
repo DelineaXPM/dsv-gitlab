@@ -47,7 +47,9 @@
   "settings": {
     "terminal.integrated.profiles.linux": {
       "zsh-login": {
-        "args": ["-l"],
+        "args": [
+          "-l"
+        ],
         "icon": "terminal-bash",
         "path": "zsh"
       }
@@ -61,20 +63,22 @@
   // Use 'postStartCommand' to run commands after the container is created like starting minikube.
   "postStartCommand": "sudo chown -R vscode /home/vscode/go/ && export GOPATH=/home/vscode/go/ && export PATH=\"${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:$PATH\" && echo '🔨 aqua tooling download' && aqua install && echo '✅ aqua install complete' && echo '🔨 running go mod download' && go mod download && echo '✅ go mod download finished' && echo '🔨 downloading build tooling dependencies' && mage && echo '✅ build tooling dependencies complete'",
   // Minikube does not like running as root, so use a non-root user.
-  "remoteUser": "vscode",
+  "remoteUser": "vscode", //trunk-ignore(gitleaks)
   "containerEnv": {
     "GITHUB_OATH_TOKEN": "${env:GITHUB_OATH_TOKEN}",
     "GOPATH": "/home/vscode/go/",
     "PATH": "/home/vscode/.local/share/aquaproj-aqua/bin:${containerEnv:PATH}"
   },
-  "initializeCommand": [".devcontainer/init"],
+  "initializeCommand": [
+    ".devcontainer/init"
+  ],
   "hostRequirements": {
     "storage": "32gb"
   },
   "features": {
     "ghcr.io/devcontainers/features/common-utils:1": {
       "version": "latest",
-      "username": "vscode"
+      "username": "vscode" //trunk-ignore(gitleaks)
     },
     "ghcr.io/devcontainers/features/docker-in-docker:1": {
       "version": "latest",
