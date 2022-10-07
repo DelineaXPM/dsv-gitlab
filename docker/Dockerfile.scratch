@@ -1,0 +1,3 @@
+FROM scratch
+ENTRYPOINT ["/dsv-gitlab"]
+COPY dsv-gitlab /

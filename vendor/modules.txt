@@ -50,11 +50,9 @@ github.com/rivo/uniseg
 # github.com/sheldonhull/magetools v0.0.12
 ## explicit; go 1.18
 github.com/sheldonhull/magetools/ci
-github.com/sheldonhull/magetools/gittools
 github.com/sheldonhull/magetools/gotools
 github.com/sheldonhull/magetools/pkg/magetoolsutils
 github.com/sheldonhull/magetools/pkg/req
-github.com/sheldonhull/magetools/precommit
 github.com/sheldonhull/magetools/secrets
 github.com/sheldonhull/magetools/tooling
 # github.com/stretchr/testify v1.7.2
