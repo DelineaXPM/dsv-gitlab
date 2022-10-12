@@ -40,7 +40,6 @@ func Init() error { //nolint:deadcode // Not dead, it's alive.
 		Clean,
 		createDirectories,
 		(gotools.Go{}.Tidy),
-		(gotools.Go{}.Init),
 	)
 
 	if ci.IsCI() {
