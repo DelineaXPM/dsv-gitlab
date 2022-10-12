@@ -9,7 +9,6 @@ import (
 	"github.com/magefile/mage/sh"
 	"github.com/pterm/pterm"
 	"github.com/sheldonhull/magetools/pkg/magetoolsutils"
-	"github.com/sheldonhull/magetools/pkg/req"
 )
 
 func checkEnvVar(envVar string, required bool) (string, error) {
@@ -34,10 +33,6 @@ func checkEnvVar(envVar string, required bool) (string, error) {
 // 🔨 Build builds the project for the current platform.
 func Build() error {
 	magetoolsutils.CheckPtermDebug()
-	binary, err := req.ResolveBinaryByInstall("goreleaser", "github.com/goreleaser/goreleaser@latest")
-	if err != nil {
-		return err
-	}
 
 	releaserArgs := []string{
 		"build",
@@ -47,18 +42,13 @@ func Build() error {
 	}
 	pterm.Debug.Printfln("goreleaser: %+v", releaserArgs)
 
-	return sh.RunV(binary, releaserArgs...) // "--skip-announce",.
+	return sh.RunV("goreleaser", releaserArgs...) // "--skip-announce",.
 }
 
 // 🔨 BuildAll builds all the binaries defined in the project, for all platforms. This includes Docker image generation but skips publish.
 // If there is no additional platforms configured in the task, then basically this will just be the same as `mage build`.
 func BuildAll() error {
 	magetoolsutils.CheckPtermDebug()
-	binary, err := req.ResolveBinaryByInstall("goreleaser", "github.com/goreleaser/goreleaser@latest")
-	if err != nil {
-		return err
-	}
-
 	releaserArgs := []string{
 		"release",
 		"--snapshot",
@@ -66,7 +56,7 @@ func BuildAll() error {
 		"--skip-publish",
 	}
 	pterm.Debug.Printfln("goreleaser: %+v", releaserArgs)
-	return sh.RunV(binary, releaserArgs...)
+	return sh.RunV("goreleaser", releaserArgs...)
 	// To pass in explicit version mapping, you can do this. I'm not using at this time.
 	// Return sh.RunWithV(map[string]string{
 	// 	"GORELEASER_CURRENT_TAG": "latest",
@@ -76,21 +66,12 @@ func BuildAll() error {
 // 🔨 Release generates a release for the current platform.
 func Release() error {
 	magetoolsutils.CheckPtermDebug()
-	binary, err := req.ResolveBinaryByInstall("goreleaser", "github.com/goreleaser/goreleaser@latest")
-	if err != nil {
+
+	if _, err := checkEnvVar("DOCKER_ORG", true); err != nil {
 		return err
 	}
 
-	if _, err = checkEnvVar("DOCKER_ORG", true); err != nil {
-		return err
-	}
-
-	changieBinary, err := req.ResolveBinaryByInstall("changie", "github.com/miniscruff/changie@latest")
-	if err != nil {
-		pterm.Error.Println("unable to install changelog binary")
-		return err
-	}
-	releaseVersion, err := sh.Output(changieBinary, "latest")
+	releaseVersion, err := sh.Output("changie", "latest")
 	if err != nil {
 		pterm.Warning.Printfln("changie pulling latest release note version failure: %v", err)
 	}
@@ -111,7 +92,7 @@ func Release() error {
 	return sh.RunWithV(map[string]string{
 		"GORELEASER_CURRENT_TAG": cleanVersion,
 	},
-		binary,
+		"goreleaser",
 		releaserArgs...,
 	)
 }
