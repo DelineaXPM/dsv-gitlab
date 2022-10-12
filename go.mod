@@ -1,6 +1,7 @@
 module github.com/DelineaXPM/dsv-gitlab
 
-go 1.18
+// Go 1.19 requried per url.JoinPath
+go 1.19
 
 require (
 	github.com/bitfield/script v0.20.2
