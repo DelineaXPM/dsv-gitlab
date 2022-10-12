@@ -40,31 +40,44 @@ func createDirectories() error {
 
 // Init runs multiple tasks to initialize all the requirements for running a project for a new contributor.
 func Init() error { //nolint:deadcode // Not dead, it's alive.
-	pterm.DefaultHeader.Println("running Init()")
+	fancy.IntroScreen(ci.IsCI())
+	pterm.Success.Println("running Init()...")
+
 	mg.SerialDeps(
 		Clean,
 		createDirectories,
+		(gotools.Go{}.Tidy),
 	)
 
-	mg.Deps(
-		(gotools.Go{}.Tidy),
-		(InstallSyft),
-	)
-	if err := tooling.SilentInstallTools(CIToolList); err != nil {
+	_, err := exec.LookPath("aqua")
+	if err != nil && os.IsNotExist(err) {
+		pterm.Error.Printfln("unable to resolve aqua cli tool, please install for automated project tooling setup: https://aquaproj.github.io/docs/tutorial-basics/quick-start#install-aqua")
 		return err
 	}
+
 	if ci.IsCI() {
+		installArgs := []string{}
+
+		if mg.Verbose() {
+			installArgs = append(installArgs, "--log-level")
+			installArgs = append(installArgs, "debug")
+		}
+		installArgs = append(installArgs, "install")
+		installArgs = append(installArgs, "aqua")
+		if err := sh.RunWithV(map[string]string{"AQUA_CONFIG": "aqua.ci.yaml"}, "aqua", installArgs...); err != nil {
+			pterm.Error.Printfln("aqua-ci%v", err)
+			return err
+		}
 		pterm.Debug.Println("CI detected, done with init")
 		return nil
 	}
 
-	pterm.DefaultSection.Println("Setup Project Specific Tools")
-	if err := tooling.SilentInstallTools(ToolList); err != nil {
+	pterm.DefaultSection.Println("Aqua install")
+	if err := sh.RunV("aqua", "install"); err != nil {
 		return err
 	}
 	// These can run in parallel as different toolchains.
 	mg.Deps(
-		(gotools.Go{}.Init),
 		(InstallTrunk),
 	)
 	return nil
@@ -85,16 +98,7 @@ func Clean() {
 
 // InstallTrunk installs trunk.io tooling.
 func InstallTrunk() error {
-	_, err := script.Exec("curl https://get.trunk.io -fsSL").Exec("bash").Stdout()
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-// InstallSyft installs SBOM tooling for goreleaser.
-func InstallSyft() error {
-	_, err := script.Exec("curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh").Exec("sh -s -- -b /usr/local/bin").Stdout()
+	_, err := script.Exec("curl https://get.trunk.io -fsSL").Exec("bash -s -- -y").Stdout()
 	if err != nil {
 		return err
 	}

@@ -4,7 +4,7 @@ cli:
 plugins:
   sources:
     - id: trunk
-      ref: v0.0.4
+      ref: v0.0.5
       uri: https://github.com/trunk-io/plugins
 
 actions:
@@ -21,17 +21,17 @@ runtimes:
     - python@3.10.3
 lint:
   enabled:
-    - actionlint@1.6.9
+    - actionlint@1.6.21
     - git-diff-check
-    - gitleaks@8.8.7
+    - gitleaks@8.14.1
     - gofmt@1.16.7
-    - golangci-lint@1.46.2
-    - hadolint@2.8.0
+    - golangci-lint@1.50.0
+    - hadolint@2.10.0
     - markdownlint@0.32.2
     - prettier@2.7.1
     - shellcheck@0.8.0
     - shfmt@3.5.0
-    - taplo@release-cli-0.6.0
+    - taplo@release-taplo-cli-0.7.0
     - yamllint@1.28.0
   threshold:
     - linters: [markdownlint]
