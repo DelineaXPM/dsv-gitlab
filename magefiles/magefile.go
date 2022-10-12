@@ -72,6 +72,16 @@ func Init() error { //nolint:deadcode // Not dead, it's alive.
 	return nil
 }
 
+// InstallAqua runs bash installer for aqua.
+func InstallAqua() error {
+	magetoolsutils.CheckPtermDebug()
+	_, err := script.Exec("curl -sSfL https://raw.githubusercontent.com/aquaproj/aqua-installer/v1.1.2/aqua-installer").Exec("bash").Stdout()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // InstallTrunk installs trunk.io tooling.
 func InstallTrunk() error {
 	magetoolsutils.CheckPtermDebug()
