@@ -3,6 +3,7 @@ package main
 
 import (
 	"os"
+	"os/exec"
 
 	"github.com/DelineaXPM/dsv-gitlab/magefiles/constants"
 
@@ -12,8 +13,6 @@ import (
 	"github.com/pterm/pterm"
 	"github.com/sheldonhull/magetools/ci"
 	"github.com/sheldonhull/magetools/pkg/magetoolsutils"
-
-	"github.com/sheldonhull/magetools/tooling"
 
 	// mage:import
 	"github.com/sheldonhull/magetools/gotools"
@@ -40,7 +39,7 @@ func createDirectories() error {
 
 // Init runs multiple tasks to initialize all the requirements for running a project for a new contributor.
 func Init() error { //nolint:deadcode // Not dead, it's alive.
-	fancy.IntroScreen(ci.IsCI())
+
 	pterm.Success.Println("running Init()...")
 
 	mg.SerialDeps(

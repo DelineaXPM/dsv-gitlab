@@ -23,7 +23,7 @@
     "--fix",
     "--config=${workspaceFolder}/.golangci.yml"
   ],
-  "go.lintOnSave": "package",
+  "go.lintOnSave": "off",
   "go.lintTool": "golangci-lint",
   "go.testEnvVars": {
     "GOTESTS_TEMPLATE": "test",
