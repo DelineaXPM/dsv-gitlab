@@ -11,7 +11,7 @@ actions:
     - trunk-fmt-pre-commit
     - trunk-check-pre-push
     # - gotestsum
-    # - go-mod-vendor
+    - go-mod-vendor
   definitions:
     - id: gotestsum
       runtime: go
@@ -27,7 +27,7 @@ actions:
       run: .trunk/go-mod-tidy-vendor.sh
       triggers:
         # - git_hooks: [commit-msg]
-        - files: [go.mod, go.sum]
+        - files: [go.mod]
 runtimes:
   definitions:
     - type: go
