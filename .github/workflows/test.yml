@@ -34,6 +34,7 @@ jobs:
         env:
           AQUA_CONFIG: aqua.ci.yaml
           AQUA_LOG_LEVEL: debug
+          AQUA_OPTS: ''
 
       # - name: aqua-install
       #   run: |
