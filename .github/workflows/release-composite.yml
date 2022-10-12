@@ -26,11 +26,7 @@ jobs:
   test:
     uses: ./.github/workflows/test.yml
     secrets: inherit
-  integration:
-    needs: test
-    uses: ./.github/workflows/integration.yml
-    secrets: inherit
   release:
-    needs: integration
+    needs: test
     uses: ./.github/workflows/release.yml
     secrets: inherit
