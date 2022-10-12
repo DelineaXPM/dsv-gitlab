@@ -24,8 +24,8 @@ const defaultTimeout = time.Second * 5
 const PermissionReadWriteOwner = 0o600
 
 type Config struct {
-	IsCI    bool `env:"GITLAB_CI"` // IsCI determines if the system is detecting being in CI system.
-	IsDebug bool `env:"DEBUG"`     // IsDebug is based on gitlab flagging as debug/trace level.
+	IsCI    bool `env:"GITLAB_CI"`      // IsCI determines if the system is detecting being in CI system. https://docs.gitlab.com/ee/ci/variables/#enable-debug-logging
+	IsDebug bool `env:"CI_DEBUG_TRACE"` // IsDebug is based on gitlab flagging as debug/trace level.
 
 	// DSV SPECIFIC ENV VARIABLES.
 

@@ -109,3 +109,6 @@ sboms:
   - artifacts: binary
     documents:
       - '${artifact}.spdx.sbom'
+# the docker artifact is what's used, not the binaries directly, so no need to upload
+release:
+  skip_upload: true
