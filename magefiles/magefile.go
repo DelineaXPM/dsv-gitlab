@@ -8,16 +8,14 @@ import (
 
 	"github.com/bitfield/script"
 	"github.com/magefile/mage/mg"
+	"github.com/magefile/mage/sh"
 	"github.com/pterm/pterm"
 	"github.com/sheldonhull/magetools/ci"
-	"github.com/sheldonhull/magetools/tooling"
 
 	// mage:import
 	"github.com/sheldonhull/magetools/gotools"
 	//mage:import
 	_ "github.com/sheldonhull/magetools/secrets"
-
-	"github.com/bitfield/script"
 )
 
 // createDirectories creates the local working directories for build artifacts and tooling.
@@ -66,11 +64,6 @@ func Init() error { //nolint:deadcode // Not dead, it's alive.
 	if err := sh.RunV("aqua", "install"); err != nil {
 		return err
 	}
-	// These can run in parallel as different toolchains.
-	mg.Deps(
-		(gittools.Gittools{}.Init),
-		(precommit.Precommit{}.Init),
-	)
 	return nil
 }
 
