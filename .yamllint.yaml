@@ -10,7 +10,7 @@ rules:
   comments-indentation: disable
 
   truthy:
-    allowed-values: ["true", "false"]
+    allowed-values: ['true', 'false']
     check-keys: false # this eliminates on: in github actions from being a failure
 
 # For all rules
