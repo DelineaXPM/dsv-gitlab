@@ -11,6 +11,7 @@ import (
 	"github.com/magefile/mage/sh"
 	"github.com/pterm/pterm"
 	"github.com/sheldonhull/magetools/ci"
+	"github.com/sheldonhull/magetools/pkg/magetoolsutils"
 
 	// mage:import
 	"github.com/sheldonhull/magetools/gotools"
@@ -20,6 +21,7 @@ import (
 
 // createDirectories creates the local working directories for build artifacts and tooling.
 func createDirectories() error {
+	magetoolsutils.CheckPtermDebug()
 	for _, dir := range []string{constants.ArtifactDirectory, constants.CacheDirectory} {
 		if err := os.MkdirAll(dir, constants.PermissionUserReadWriteExecute); err != nil {
 			pterm.Error.Printf("failed to create dir: [%s] with error: %v\n", dir, err)
@@ -34,6 +36,7 @@ func createDirectories() error {
 
 // Init runs multiple tasks to initialize all the requirements for running a project for a new contributor.
 func Init() error { //nolint:deadcode // Not dead, it's alive.
+	magetoolsutils.CheckPtermDebug()
 	pterm.DefaultHeader.Println("running Init()")
 
 	mg.SerialDeps(
@@ -51,23 +54,27 @@ func Init() error { //nolint:deadcode // Not dead, it's alive.
 		}
 		installArgs = append(installArgs, "install")
 		installArgs = append(installArgs, "aqua")
+		pterm.DefaultSection.Printfln("aqua install ci dependencies")
 		if err := sh.RunWithV(map[string]string{"AQUA_CONFIG": "aqua.ci.yaml"}, "aqua", installArgs...); err != nil {
 			pterm.Error.Printfln("aqua-ci%v", err)
 			return err
 		}
+		pterm.Success.Println("aqua install ci dependencies")
 		pterm.Debug.Println("CI detected, done with init")
 		return nil
 	}
-
+	pterm.DefaultSection.Printfln("aqua install dev dependencies")
 	pterm.DefaultSection.Println("Aqua install")
 	if err := sh.RunV("aqua", "install"); err != nil {
 		return err
 	}
+	pterm.Success.Println("aqua install dev dependencies")
 	return nil
 }
 
 // InstallTrunk installs trunk.io tooling.
 func InstallTrunk() error {
+	magetoolsutils.CheckPtermDebug()
 	_, err := script.Exec("curl https://get.trunk.io -fsSL").Exec("bash").Stdout()
 	if err != nil {
 		return err
@@ -77,6 +84,7 @@ func InstallTrunk() error {
 
 // InstallSyft installs SBOM tooling for goreleaser.
 func InstallSyft() error {
+	magetoolsutils.CheckPtermDebug()
 	_, err := script.Exec("curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh").Exec("sh -s -- -b /usr/local/bin").Stdout()
 	if err != nil {
 		return err
@@ -86,6 +94,7 @@ func InstallSyft() error {
 
 // Clean up after yourself.
 func Clean() {
+	magetoolsutils.CheckPtermDebug()
 	pterm.Success.Println("Cleaning...")
 	for _, dir := range []string{constants.ArtifactDirectory, constants.CacheDirectory} {
 		err := os.RemoveAll(dir)
