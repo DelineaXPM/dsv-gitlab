@@ -12,7 +12,7 @@
     "editor.defaultFormatter": "golang.go",
     "editor.formatOnSave": true
   },
-  "go.coverageOptions": "showUncoveredCodeOnly",
+  "go.coverageOptions": "showBothCoveredAndUncoveredCode",
   // "go.coverOnSave": true,
   "go.coverOnSingleTest": true,
   "go.coverOnSingleTestFile": true,
@@ -36,10 +36,9 @@
   "go.formatTool": "gofumpt",
   "gopls": {
     "formatting.gofumpt": true,
+    "formatting.local": "github.com/DelineaXPM",
     "buildFlags": [
       "-tags=mage tools integration" // required for gopls to autocomplete mage files with mage tag
-    ],
-    "build.experimentalWorkspaceModule": true,
-    "build.expandWorkspaceToModule": true
+    ]
   }
 }
