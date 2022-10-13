@@ -73,3 +73,17 @@ jobs:
         env:
           # Race conditions will be hit due to the cli driven tasks and binaries being called.
           GOTEST_DISABLE_RACE: 1
+      - name: Upload coverage reports to Codecov
+        run: |
+          # curl -Os https://uploader.codecov.io/latest/linux/codecov
+          # chmod +x codecov
+          # ./codecov -t ${CODECOV_TOKEN}
+          # improved codecov with signature verification
+          curl https://uploader.codecov.io/verification.gpg | gpg --no-default-keyring --keyring trustedkeys.gpg --import # One-time step
+          curl -Os https://uploader.codecov.io/latest/linux/codecov
+          curl -Os https://uploader.codecov.io/latest/linux/codecov.SHA256SUM
+          curl -Os https://uploader.codecov.io/latest/linux/codecov.SHA256SUM.sig
+          gpgv codecov.SHA256SUM.sig codecov.SHA256SUM
+          shasum -a 256 -c codecov.SHA256SUM
+          chmod +x codecov
+          ./codecov -t ${CODECOV_TOKEN}

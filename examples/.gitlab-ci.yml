@@ -1,0 +1,44 @@
+---
+stages:
+  - test-stage
+variables:
+  CI_DEBUG_TRACE: 'true'
+dsv_secrets:
+  image:
+    name: delineaxpm/dsv-gitlab:latest
+  stage: test-stage
+  variables:
+    DSV_DOMAIN: $DSV_DOMAIN
+    DSV_CLIENT_ID: $DSV_CLIENT_ID
+    DSV_CLIENT_SECRET: $DSV_CLIENT_SECRET
+    DSV_RETRIEVE: |
+      [
+        {"secretPath": "ci:tests:dsv-gitlab:secret-01", "secretKey": "value1", "outputVariable": "RETURN_VALUE_1"},
+        {"secretPath": "ci:tests:dsv-gitlab:secret-01", "secretKey": "value2", "outputVariable": "RETURN_VALUE_2"}
+      ]
+  script:
+    - ''
+  artifacts:
+    reports:
+      dotenv: $CI_JOB_NAME
+
+test:
+  stage: test-stage
+  script: |
+    if [ "$RETURN_VALUE_1" == "$DSV_EXPECTED_VALUE_1" ]; then
+        echo "✅ test value is matched"
+        exit 0
+    else
+        echo "::error ❌ mismatch, failed to return test value"
+        exit 1
+    fi
+    if [ "$RETURN_VALUE_2" == "$DSV_EXPECTED_VALUE_2" ]; then
+        echo "✅ test value is matched"
+        exit 0
+    else
+        echo -e "::error ❌ mismatch, failed to return test value"
+        exit 1
+    fi
+  needs:
+    - job: dsv_secrets
+      artifacts: true
