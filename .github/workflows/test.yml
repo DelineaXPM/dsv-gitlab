@@ -32,7 +32,7 @@ jobs:
         env:
           AQUA_CONFIG: aqua.ci.yaml
           AQUA_LOG_LEVEL: debug
-          AQUA_OPTS: ''
+          AQUA_OPTS: '-l'
       - name: env-config-go
         run: |
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
