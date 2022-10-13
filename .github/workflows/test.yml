@@ -48,12 +48,14 @@ jobs:
 
       - name: mage-init
         run: |
-          # echo "${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:${PATH}"
+          echo "${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:${PATH}"
+          echo "$(go env GOPATH)/bin"
           mage init
 
       - name: mage-gotestsum
         run: |
-          # echo "${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:${PATH}"
+          echo "${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:${PATH}"
+          echo "$(go env GOPATH)/bin"
           mage go:testsum ./...
         env:
           # Race conditions will be hit due to the cli driven tasks and binaries being called.
