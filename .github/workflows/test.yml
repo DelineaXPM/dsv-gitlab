@@ -27,7 +27,7 @@ jobs:
         run: |
           curl -sSfL https://raw.githubusercontent.com/aquaproj/aqua-installer/v1.1.2/aqua-installer | bash -s -- -i /usr/local/bin/aqua
           echo "${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin" >> $GITHUB_PATH
-          aqua install
+          AQUA_CONFIG=aqua.ci.yaml aqua install
         env:
           AQUA_CONFIG: aqua.ci.yaml
           AQUA_LOG_LEVEL: debug
