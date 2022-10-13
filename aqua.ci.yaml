@@ -10,5 +10,6 @@ packages:
   - name: goreleaser/goreleaser@v1.11.5
   - name: magefile/mage@v1.14.0
   - name: miniscruff/changie@v1.9.1
+  - name: gotestyourself/gotestsum@v1.8.2
   # Requires go runtime so leaving out for moment
   # - name: golang/vuln/govulncheck@b5628b3a3e55af77e5d5e2589064e35b438086a9
