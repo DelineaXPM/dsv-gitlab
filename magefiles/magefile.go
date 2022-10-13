@@ -46,23 +46,24 @@ func Init() error { //nolint:deadcode // Not dead, it's alive.
 	)
 
 	if ci.IsCI() {
-		installArgs := []string{}
+		// installArgs := []string{}
 
-		if mg.Verbose() {
-			installArgs = append(installArgs, "--log-level")
-			installArgs = append(installArgs, "debug")
-		}
-		installArgs = append(installArgs, "install")
-		installArgs = append(installArgs, "aqua")
-		pterm.DefaultSection.Printfln("aqua install ci dependencies")
-		if err := sh.RunWithV(map[string]string{"AQUA_CONFIG": "aqua.ci.yaml"}, "aqua", installArgs...); err != nil {
-			pterm.Error.Printfln("aqua-ci%v", err)
-			return err
-		}
-		pterm.Success.Println("aqua install ci dependencies")
+		// if mg.Verbose() {
+		// 	installArgs = append(installArgs, "--log-level")
+		// 	installArgs = append(installArgs, "debug")
+		// }
+		// installArgs = append(installArgs, "install")
+		// installArgs = append(installArgs, "aqua")
+		// pterm.DefaultSection.Printfln("aqua install ci dependencies")
+		// if err := sh.RunWithV(map[string]string{"AQUA_CONFIG": "aqua.ci.yaml"}, "aqua", installArgs...); err != nil {
+		// 	pterm.Error.Printfln("aqua-ci%v", err)
+		// 	return err
+		// }
+		// pterm.Success.Println("aqua install ci dependencies")
 		pterm.Debug.Println("CI detected, done with init")
 		return nil
 	}
+
 	pterm.DefaultSection.Printfln("aqua install dev dependencies")
 	pterm.DefaultSection.Println("Aqua install")
 	if err := sh.RunV("aqua", "install"); err != nil {
