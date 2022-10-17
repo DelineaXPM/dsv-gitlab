@@ -23,13 +23,12 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v3
-      - name: env-config
+      - name: aqua-install
         run: |
+          curl -sSfL https://raw.githubusercontent.com/aquaproj/aqua-installer/v1.1.2/aqua-installer | bash -s -- -i /usr/local/bin/aqua
           echo "${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin" >> $GITHUB_PATH
-      - uses: aquaproj/aqua-installer@v1.1.2
-        with:
-          aqua_version: v1.20.2
-          enable_aqua_install: true
+          [[ -e "${AQUA_CONFIG}" ]] && echo "✅ AQUA_CONFIG: ${AQUA_CONFIG} exists" ||  echo "::error ❗ unable to validate the target file: ${AQUA_CONFIG} exists"
+          aqua install --only-link
         env:
           AQUA_CONFIG: aqua.ci.yaml
           AQUA_LOG_LEVEL: debug
@@ -49,12 +48,15 @@ jobs:
 
       - name: mage-init
         run: |
-          # echo "${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:${PATH}"
+          export PATH="${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:${PATH}"
+          export "$(go env GOPATH)/bin:${PATH}"
           mage init
 
       - name: mage-gotestsum
         run: |
-          # echo "${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:${PATH}"
+          export PATH="${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:${PATH}"
+          export "$(go env GOPATH)/bin:${PATH}"
+
           mage go:testsum ./...
         env:
           # Race conditions will be hit due to the cli driven tasks and binaries being called.
@@ -72,4 +74,4 @@ jobs:
           gpgv codecov.SHA256SUM.sig codecov.SHA256SUM
           shasum -a 256 -c codecov.SHA256SUM
           chmod +x codecov
-          ./codecov -t ${CODECOV_TOKEN}
+          ./codecov
