@@ -27,6 +27,8 @@ type Config struct {
 	IsCI    bool `env:"GITLAB_CI"`      // IsCI determines if the system is detecting being in CI system. https://docs.gitlab.com/ee/ci/variables/#enable-debug-logging
 	IsDebug bool `env:"CI_DEBUG_TRACE"` // IsDebug is based on gitlab flagging as debug/trace level.
 
+	CIProjectDirectory string `env:"CI_PROJECT_DIR,required"` // CIProjectDirectory is populated by CI_PROJECT_DIR which provides the fully qualified path to the project. https://docs.gitlab.com/ee/ci/variables/
+	CIJobName          string `env:"CI_JOB_NAME,required"`    // CIJobName is populated by CI_JOB_NAME which provides the fully qualified path to the project. https://docs.gitlab.com/ee/ci/variables/
 	// DSV SPECIFIC ENV VARIABLES.
 
 	SetEnv          bool   `env:"DSV_SET_ENV"`                         // SetEnv is only for GitHub Actions.
@@ -44,25 +46,15 @@ type SecretToRetrieve struct {
 
 // getEnvFileName helps retrieve and build a env file path that should contain
 // the resulting secrets. See [GitLab - Passing An Environment Variable to Another Job](https://docs.gitlab.com/ee/ci/variables/#pass-an-environment-variable-to-another-job)
-func (cfg *Config) getEnvFileName() (string, error) {
-	jobName, isSet := os.LookupEnv("CI_JOB_NAME")
-	if !isSet {
-		return "", fmt.Errorf("CI_JOB_NAME is not set")
-	}
+func (cfg *Config) getEnvFileName() string {
+	envFileName := filepath.Join(cfg.CIProjectDirectory, cfg.CIJobName, "build.env")
 
-	projPath, isSet := os.LookupEnv("CI_PROJECT_PATH")
-	if !isSet {
-		return "", fmt.Errorf("CI_PROJECT_PATH is not set")
-	}
-
-	envFileName := filepath.Join("/builds/", projPath, jobName)
 	pterm.Debug.Printfln("envfilename: %s", envFileName)
 	pterm.Success.Printfln("getEnvFileName() success")
-	return envFileName, nil
+	return envFileName
 }
 
 // configure Pterm settings for project based on the detected environment.
-// Github documents their special syntax here: https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions
 func (cfg *Config) configureLogging() {
 	pterm.Info.Println("configureLogging()")
 
@@ -269,14 +261,11 @@ func DSVGetSecret(client HTTPClient, apiEndpoint, accessToken string, item Secre
 func OpenEnvFile(cfg *Config) (*os.File, error) {
 	pterm.Info.Println("OpenEnvFile()")
 
-	envFileName, err := cfg.getEnvFileName()
+	envFileName := cfg.getEnvFileName()
+
+	_, err := os.Stat(envFileName)
 	if err != nil {
-		return nil, fmt.Errorf("GITLAB_CI environment is not defined")
-	}
-	_, err = os.Stat(envFileName)
-	if err != nil {
-		pterm.Error.Printfln("unable to validate envFileName exists: %v", err)
-		return nil, fmt.Errorf("envFileName doesn't seem to exist: %w", err)
+		pterm.Warning.Printfln("unable to validate envFileName exists, so we'll need to create it: %v", err)
 	}
 	pterm.Success.Printfln("envfilepath: %s", envFileName)
 
