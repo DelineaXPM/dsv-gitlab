@@ -63,9 +63,9 @@
   // Minikube does not like running as root, so use a non-root user.
   "remoteUser": "vscode", //trunk-ignore(gitleaks)
   "containerEnv": {
-    "GITHUB_OATH_TOKEN": "${env:GITHUB_OATH_TOKEN}",
-    "GOPATH": "/home/vscode/go/",
-    "PATH": "/home/vscode/.local/share/aquaproj-aqua/bin:${containerEnv:PATH}"
+    "GITHUB_OATH_TOKEN": "${localEnv:GITHUB_OATH_TOKEN}"
+    // "GOPATH": "/home/vscode/go/",
+    // "PATH": "/home/vscode/.local/share/aquaproj-aqua/bin:${containerEnv:PATH}"
   },
   "initializeCommand": [".devcontainer/init"],
   "hostRequirements": {
@@ -77,8 +77,8 @@
       "username": "vscode" //trunk-ignore(gitleaks)
     },
     "ghcr.io/devcontainers/features/docker-in-docker:1": {
-      "version": "latest",
-      "dockerDashComposeVersion": "v2"
+      "version": "latest"
+      // "dockerDashComposeVersion": "v2"
     }
   }
 }
