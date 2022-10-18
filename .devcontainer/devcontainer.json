@@ -5,25 +5,26 @@
   "dockerFile": "Dockerfile",
   "build": {
     "args": {
-      "USERNAME": "vscode" //trunk-ignore(gitleaks)
+      "DEVCONTAINER_USER": "vscode",
+      "GOPATH": "/home/vscode/go"
     }
   },
-  "runArgs": [
-    "--cap-add=SYS_PTRACE",
-    "--security-opt",
-    "seccomp=unconfined",
-    "--privileged",
-    "--init"
-  ],
+  "runArgs": ["--init", "--privileged"],
+
+  // "runArgs": [
+  //   "--cap-add=SYS_PTRACE",
+  //   "--security-opt",
+  //   "seccomp=unconfined",
+  //   "--privileged",
+  //   "--init"
+  // ],
   "mounts": [
     "source=minikube-config,target=/home/vscode/.minikube,type=volume",
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.kube,target=/home/vscode/.kube/,type=bind,consistency=cached", // support for SSH keys
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh/,type=bind,consistency=cached", // support for SSH keys
     "source=${localEnv:HOME}${localEnv:USERPROFILE}/.envrc,target=/home/vscode/.envrc,type=bind,consistency=cached", // envrc from home to allow direnv to mount credentials
     // cache gopath directory
-    "source=go-path,target=/home/vscode/go/,type=volume",
-    // caching for zsh history, zoxide and others, allowing it to persist after rebuild.
-    "source=zshcache,target=/home/vscode/.zsh.cache/,type=volume"
+    "source=go-path,target=/home/vscode/go/,type=volume"
   ],
   "overrideCommand": false,
   // Configure tool-specific properties.
@@ -47,7 +48,9 @@
   "settings": {
     "terminal.integrated.profiles.linux": {
       "zsh-login": {
-        "args": ["-l"],
+        "args": [
+          "-l"
+        ],
         "icon": "terminal-bash",
         "path": "zsh"
       }
@@ -59,26 +62,33 @@
   // Use 'postCreateCommand' to run commands after the container is created.
   // "postCreateCommand": "",
   // Use 'postStartCommand' to run commands after the container is created like starting minikube.
-  "postStartCommand": "sudo chown -R vscode /home/vscode/go/ && export GOPATH=/home/vscode/go/ && export PATH=\"${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:$PATH\" && echo '🔨 aqua tooling download' && aqua install && echo '✅ aqua install complete' && echo '🔨 running go mod download' && go mod download && echo '✅ go mod download finished' && echo '🔨 downloading build tooling dependencies' && mage && echo '✅ build tooling dependencies complete'",
+  "postStartCommand": "sudo chown -R vscode /home/vscode/go/ && export GOPATH=/home/vscode/go/ && echo '🔨 aqua tooling download' && aqua install && echo '✅ aqua install complete' && echo '🔨 running go mod download' && /home/vscode/.local/share/aquaproj-aqua/bin/go mod download && echo '✅ go mod download finished' && echo '🔨 downloading build tooling dependencies' && /home/vscode/.local/share/aquaproj-aqua/bin/mage && echo '✅ build tooling dependencies complete'",
   // Minikube does not like running as root, so use a non-root user.
-  "remoteUser": "vscode", //trunk-ignore(gitleaks)
+  "remoteUser": "vscode",
   "containerEnv": {
+    "ENABLE_NONROOT_DOCKER": "true",
     "GITHUB_OATH_TOKEN": "${localEnv:GITHUB_OATH_TOKEN}"
-    // "GOPATH": "/home/vscode/go/",
-    // "PATH": "/home/vscode/.local/share/aquaproj-aqua/bin:${containerEnv:PATH}"
   },
-  "initializeCommand": [".devcontainer/init"],
+  "remoteEnv": {
+    "ENABLE_NONROOT_DOCKER": "true"
+  },
+  "initializeCommand": [
+    ".devcontainer/init"
+  ],
   "hostRequirements": {
     "storage": "32gb"
   },
   "features": {
+    //"ghcr.io/devcontainers/features/common-utils:1": {
     "ghcr.io/devcontainers/features/common-utils:1": {
       "version": "latest",
-      "username": "vscode" //trunk-ignore(gitleaks)
+      "username": "vscode",
+      "installOhMyZsh": true
     },
-    "ghcr.io/devcontainers/features/docker-in-docker:1": {
-      "version": "latest"
-      // "dockerDashComposeVersion": "v2"
+    "ghcr.io/devcontainers/features/docker-in-docker:1.0.7": {
+      "version": "latest",
+      "dockerDashComposeVersion": "v2",
+      "username": "vscode"
     }
   }
 }
