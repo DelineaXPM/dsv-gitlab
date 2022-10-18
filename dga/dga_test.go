@@ -353,15 +353,6 @@ func TestOpenEnvFile(t *testing.T) {
 		shouldFail bool
 	}{
 		{
-			name: "gitlab should fail when required variables is missing",
-			envs: map[string]string{
-				"CI_JOB_NAME":    "",
-				"CI_PROJECT_DIR": "",
-			},
-			isCI:       true,
-			shouldFail: true,
-		},
-		{
 			name: "gitlab should succeed when file doesn't exist since it will create it",
 			envs: map[string]string{
 				"CI_JOB_NAME":    cacheDir,

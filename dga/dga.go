@@ -45,26 +45,11 @@ type SecretToRetrieve struct {
 
 // getEnvFileName helps retrieve and build a env file path that should contain
 // the resulting secrets. See [GitLab - Passing An Environment Variable to Another Job](https://docs.gitlab.com/ee/ci/variables/#pass-an-environment-variable-to-another-job)
-func (cfg *Config) getEnvFileName() (string, error) {
-	var errorCount int
-	// TODO: not sure why env isn't failing on config load in the first place
-	if cfg.CIProjectDirectory == "" {
-		pterm.Error.Printfln("CI_PROJECT_DIR must be set and seems to be empty")
-		errorCount++
-	}
-
-	if cfg.CIJobName == "" {
-		pterm.Error.Printfln("CI_JOB_NAME must be set and seems to be empty")
-		errorCount++
-	}
-	if errorCount > 0 {
-		return "", fmt.Errorf("CI_PROJECT_DIR and CI_JOB_NAME are both required: error count: %d", errorCount)
-	}
-
+func (cfg *Config) getEnvFileName() string {
 	envFileName := filepath.Join(cfg.CIProjectDirectory, cfg.CIJobName, "build.env")
 	pterm.Debug.Printfln("envfilename: %s", envFileName)
 	pterm.Success.Printfln("getEnvFileName() success")
-	return envFileName, nil
+	return envFileName
 }
 
 // configure Pterm settings for project based on the detected environment.
@@ -105,20 +90,27 @@ func (cfg *Config) sendRequest(c HTTPClient, req *http.Request, out any) error {
 	return nil
 }
 
-func Run() error { //nolint:funlen,cyclop // funlen: this could use refactoring in future to break it apart more, but leaving as is at this time.
-	var err error
-	var retrievedValues []SecretToRetrieve
-
+func parseConfig() (Config, error) {
 	cfg := Config{}
 	cfg.configureLogging()
-
 	if err := env.Parse(&cfg, env.Options{
 		// Prefix: "DSV_",.
 	}); err != nil {
 		pterm.Error.Printfln("env.Parse() %+v", err)
-		return fmt.Errorf("unable to parse env vars: %w", err)
+		return Config{}, fmt.Errorf("unable to parse env vars: %w", err)
 	}
 	pterm.Success.Println("parsed environment variables")
+	return cfg, nil
+}
+
+func Run() error { //nolint:funlen,cyclop // funlen: this could use refactoring in future to break it apart more, but leaving as is at this time.
+	var err error
+	var retrievedValues []SecretToRetrieve
+
+	cfg, err := parseConfig()
+	if err != nil {
+		return err
+	}
 
 	if cfg.IsDebug {
 		pterm.Info.Println("DEBUG detected, setting debug output to enabled")
@@ -269,15 +261,14 @@ func DSVGetSecret(client HTTPClient, apiEndpoint, accessToken string, item Secre
 
 // OpenEnvFile storing secrets that can extend to another job or task in Gitlab.
 // See [GitLab - Passing An Environment Variable to Another Job](https://docs.gitlab.com/ee/ci/variables/#pass-an-environment-variable-to-another-job)
-func OpenEnvFile(cfg *Config) (*os.File, error) {
+func OpenEnvFile(cfg *Config) (envFile *os.File, err error) {
 	pterm.Info.Println("OpenEnvFile()")
 
-	envFileName, err := cfg.getEnvFileName()
+	envFileName := cfg.getEnvFileName()
+	_, err = os.Stat(envFileName)
+
 	if err != nil {
 		pterm.Warning.Printfln("unable to validate envFileName exists, so we'll need to create it: %v", err)
-	}
-	_, err := os.Stat(envFileName)
-	if err != nil {
 		pterm.Warning.Printfln("unable to validate envFileName exists, so we'll need to create it: %v", err)
 	}
 	pterm.Success.Printfln("envfilepath: %s", envFileName)
@@ -289,7 +280,7 @@ func OpenEnvFile(cfg *Config) (*os.File, error) {
 		pterm.Info.Printfln("envFileName permission: %#o", fi.Mode().Perm())
 	}
 
-	envFile, err := os.OpenFile(envFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, PermissionReadWriteOwner) //nolint:nosnakecase // these are standard package values and ok to leave snakecase.
+	envFile, err = os.OpenFile(envFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, PermissionReadWriteOwner) //nolint:nosnakecase // these are standard package values and ok to leave snakecase.
 	if errors.Is(err, os.ErrNotExist) {
 		// See if we can provide some useful info on the existing permissions.
 		return nil, fmt.Errorf("envfile doesn't exist or has denied permission %s: %w", envFileName, err)
