@@ -27,15 +27,14 @@ type Config struct {
 	IsCI    bool `env:"GITLAB_CI"`      // IsCI determines if the system is detecting being in CI system. https://docs.gitlab.com/ee/ci/variables/#enable-debug-logging
 	IsDebug bool `env:"CI_DEBUG_TRACE"` // IsDebug is based on gitlab flagging as debug/trace level.
 
-	CIProjectDirectory string `env:"CI_PROJECT_DIR,required"` // CIProjectDirectory is populated by CI_PROJECT_DIR which provides the fully qualified path to the project. https://docs.gitlab.com/ee/ci/variables/
-	CIJobName          string `env:"CI_JOB_NAME,required"`    // CIJobName is populated by CI_JOB_NAME which provides the fully qualified path to the project. https://docs.gitlab.com/ee/ci/variables/
+	CIProjectDirectory string `env:"CI_PROJECT_DIR,notEmpty"` // CIProjectDirectory is populated by CI_PROJECT_DIR which provides the fully qualified path to the project. https://docs.gitlab.com/ee/ci/variables/
+	CIJobName          string `env:"CI_JOB_NAME,notEmpty"`    // CIJobName is populated by CI_JOB_NAME which provides the fully qualified path to the project. https://docs.gitlab.com/ee/ci/variables/
 	// DSV SPECIFIC ENV VARIABLES.
 
-	SetEnv          bool   `env:"DSV_SET_ENV"`                         // SetEnv is only for GitHub Actions.
-	DomainEnv       string `env:"DSV_DOMAIN,required"`                 // Tenant domain name (e.g. example.secretsvaultcloud.com).
-	ClientIDEnv     string `env:"DSV_CLIENT_ID,required"`              // Client ID for authentication.
-	ClientSecretEnv string `json:"-" env:"DSV_CLIENT_SECRET,required"` // Client Secret for authentication.
-	RetrieveEnv     string `env:"DSV_RETRIEVE,required"`               // JSON formatted string with data to retrieve from DSV.
+	DomainEnv       string `env:"DSV_DOMAIN,notEmpty"`                 // Tenant domain name (e.g. example.secretsvaultcloud.com).
+	ClientIDEnv     string `env:"DSV_CLIENT_ID,notEmpty"`              // Client ID for authentication.
+	ClientSecretEnv string `json:"-" env:"DSV_CLIENT_SECRET,notEmpty"` // Client Secret for authentication.
+	RetrieveEnv     string `env:"DSV_RETRIEVE,notEmpty"`               // JSON formatted string with data to retrieve from DSV.
 }
 
 type SecretToRetrieve struct {
@@ -46,12 +45,26 @@ type SecretToRetrieve struct {
 
 // getEnvFileName helps retrieve and build a env file path that should contain
 // the resulting secrets. See [GitLab - Passing An Environment Variable to Another Job](https://docs.gitlab.com/ee/ci/variables/#pass-an-environment-variable-to-another-job)
-func (cfg *Config) getEnvFileName() string {
-	envFileName := filepath.Join(cfg.CIProjectDirectory, cfg.CIJobName, "build.env")
+func (cfg *Config) getEnvFileName() (string, error) {
+	var errorCount int
+	// TODO: not sure why env isn't failing on config load in the first place
+	if cfg.CIProjectDirectory == "" {
+		pterm.Error.Printfln("CI_PROJECT_DIR must be set and seems to be empty")
+		errorCount++
+	}
 
+	if cfg.CIJobName == "" {
+		pterm.Error.Printfln("CI_JOB_NAME must be set and seems to be empty")
+		errorCount++
+	}
+	if errorCount > 0 {
+		return "", fmt.Errorf("CI_PROJECT_DIR and CI_JOB_NAME are both required: error count: %d", errorCount)
+	}
+
+	envFileName := filepath.Join(cfg.CIProjectDirectory, cfg.CIJobName, "build.env")
 	pterm.Debug.Printfln("envfilename: %s", envFileName)
 	pterm.Success.Printfln("getEnvFileName() success")
-	return envFileName
+	return envFileName, nil
 }
 
 // configure Pterm settings for project based on the detected environment.
@@ -116,7 +129,6 @@ func Run() error { //nolint:funlen,cyclop // funlen: this could use refactoring 
 		pterm.Debug.Printfln("IsCI            : %v", cfg.IsCI)
 		pterm.Debug.Printfln("IsDebug         : %v", cfg.IsDebug)
 
-		pterm.Debug.Printfln("SetEnv          : %v", cfg.SetEnv)
 		pterm.Debug.Printfln("DomainEnv       : %v", cfg.DomainEnv)
 		pterm.Debug.Println("ClientIDEnv     : ** value exists, but not exposing in logs **")
 		pterm.Debug.Println("ClientSecretEnv : ** value exists, but not exposing in logs **")
@@ -139,8 +151,8 @@ func Run() error { //nolint:funlen,cyclop // funlen: this could use refactoring 
 	}
 	var envFile *os.File
 
-	// This function will only run if both is CI and SetEnv is detected.
-	if cfg.IsCI && cfg.SetEnv {
+	// This function will only run if is CI.
+	if cfg.IsCI {
 		envFile, err = OpenEnvFile(&cfg)
 		if err != nil {
 			pterm.Error.Printfln("unable to run OpenEnvFile: %v", err)
@@ -180,13 +192,12 @@ func Run() error { //nolint:funlen,cyclop // funlen: this could use refactoring 
 		pterm.Debug.Printfln("%q: Set output %q to value in %q", item.SecretPath, outputKey, item.SecretKey)
 		pterm.Success.Printfln("actionSetOutput success: %q", outputKey)
 
-		if cfg.SetEnv {
-			if err := ExportEnvVariable(envFile, outputKey, val); err != nil { // TODO: this needs to be correctly set to use the right output variable.
-				pterm.Error.Printfln("%q: unable to export env variable: %v", outputKey, err)
-				return fmt.Errorf("cannot set environment variable")
-			}
-			pterm.Success.Printfln("%q: Set env var %q to value in %q", item, strings.ToUpper(outputKey), item.SecretKey)
+		if err := ExportEnvVariable(envFile, outputKey, val); err != nil { // TODO: this needs to be correctly set to use the right output variable.
+			pterm.Error.Printfln("%q: unable to export env variable: %v", outputKey, err)
+			return fmt.Errorf("cannot set environment variable")
 		}
+		pterm.Success.Printfln("%q: Set env var %q to value in %q", item, strings.ToUpper(outputKey), item.SecretKey)
+
 	}
 	return nil
 }
@@ -261,8 +272,10 @@ func DSVGetSecret(client HTTPClient, apiEndpoint, accessToken string, item Secre
 func OpenEnvFile(cfg *Config) (*os.File, error) {
 	pterm.Info.Println("OpenEnvFile()")
 
-	envFileName := cfg.getEnvFileName()
-
+	envFileName, err := cfg.getEnvFileName()
+	if err != nil {
+		pterm.Warning.Printfln("unable to validate envFileName exists, so we'll need to create it: %v", err)
+	}
 	_, err := os.Stat(envFileName)
 	if err != nil {
 		pterm.Warning.Printfln("unable to validate envFileName exists, so we'll need to create it: %v", err)
