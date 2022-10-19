@@ -1,5 +1,7 @@
 # Repo
 
+[![codecov](https://codecov.io/gh/delineaxpm/dsv-gitlab/branch/main/graph/badge.svg?token=FPHYYO5ZF2)](https://codecov.io/gh/delineaxpm/dsv-gitlab)
+
 Delinea DevOps Secrets Vault (DSV) CI plugin allows you to access and reference your Secrets data available for use in GitLab Jobs.
 
 ## Getting Started
