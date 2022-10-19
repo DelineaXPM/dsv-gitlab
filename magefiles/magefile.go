@@ -155,8 +155,7 @@ func (Test) SetupLocal() error {
 		return err
 	}
 	pterm.Info.Printfln("response: %v", response)
-	if response == true {
-
+	if response {
 		answers := struct {
 			DSVDomain       string
 			DSVClientID     string
@@ -185,7 +184,6 @@ func (Test) SetupLocal() error {
 		os.Setenv("DSV_DOMAIN", answers.DSVDomain)
 		os.Setenv("DSV_CLIENT_ID", answers.DSVClientID)
 		os.Setenv("DSV_CLIENT_SECRET", answers.DSVClientSecret)
-
 	}
 	//nolint:tagliatelle // environment variables
 	type TestConfig struct {
