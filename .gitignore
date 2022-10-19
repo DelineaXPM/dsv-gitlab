@@ -58,3 +58,6 @@ tools
 _artifacts
 **/*/bin
 mage_output_file.go
+
+
+.gitlab-ci-local-variables.yml

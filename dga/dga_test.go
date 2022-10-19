@@ -342,9 +342,9 @@ func TestOpenEnvFile(t *testing.T) {
 	validSecretFile := filepath.Join(projectDirectory, "build.env")
 	is.NoErr(os.WriteFile(validSecretFile, []byte("foo=bar"), everyoneReadWriteExec)) // Writing to a local file with unreadable set should succeed.
 
-	// defer func() {
-	// 	is.NoErr(os.RemoveAll(cacheDir)) // Should remove cachedir.
-	// }()
+	defer func() {
+		is.NoErr(os.RemoveAll(cacheDir)) // Should remove cachedir.
+	}()
 
 	cases := []struct {
 		name       string
