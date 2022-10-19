@@ -1,0 +1,7 @@
+reflex -r ".*\.go"  -- \
+sh -c "gotestsum --format dots-v2 \
+       -- -shuffle=on -race -tags integration \
+       -coverprofile=.artifacts/cover.out ./... ;
+       gcov2lcov \
+       -infile='.artifacts/cover.out' \
+       -outfile='.artifacts/coverage.lcov'"

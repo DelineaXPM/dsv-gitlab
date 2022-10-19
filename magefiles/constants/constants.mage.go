@@ -17,6 +17,9 @@ const (
 
 	// SecretFile is a local env file for testing integration with github action and not added to source control.
 	SecretFile = ".cache/.secrets"
+
+	// GitLabCILocalVariablesFile is the file that needs to exist for the local integration to be successful.
+	GitLabCILocalVariablesFile = ".gitlab-ci-local-variables.yml"
 )
 
 // Docker constants.

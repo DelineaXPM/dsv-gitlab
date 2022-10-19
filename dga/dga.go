@@ -27,13 +27,14 @@ type Config struct {
 	IsCI    bool `env:"GITLAB_CI"`      // IsCI determines if the system is detecting being in CI system. https://docs.gitlab.com/ee/ci/variables/#enable-debug-logging
 	IsDebug bool `env:"CI_DEBUG_TRACE"` // IsDebug is based on gitlab flagging as debug/trace level.
 
+	CIProjectDirectory string `env:"CI_PROJECT_DIR,notEmpty"` // CIProjectDirectory is populated by CI_PROJECT_DIR which provides the fully qualified path to the project. https://docs.gitlab.com/ee/ci/variables/
+	CIJobName          string `env:"CI_JOB_NAME,notEmpty"`    // CIJobName is populated by CI_JOB_NAME which provides the fully qualified path to the project. https://docs.gitlab.com/ee/ci/variables/
 	// DSV SPECIFIC ENV VARIABLES.
 
-	SetEnv          bool   `env:"DSV_SET_ENV"`                         // SetEnv is only for GitHub Actions.
-	DomainEnv       string `env:"DSV_DOMAIN,required"`                 // Tenant domain name (e.g. example.secretsvaultcloud.com).
-	ClientIDEnv     string `env:"DSV_CLIENT_ID,required"`              // Client ID for authentication.
-	ClientSecretEnv string `json:"-" env:"DSV_CLIENT_SECRET,required"` // Client Secret for authentication.
-	RetrieveEnv     string `env:"DSV_RETRIEVE,required"`               // JSON formatted string with data to retrieve from DSV.
+	DomainEnv       string `env:"DSV_DOMAIN,notEmpty"`                 // Tenant domain name (e.g. example.secretsvaultcloud.com).
+	ClientIDEnv     string `env:"DSV_CLIENT_ID,notEmpty"`              // Client ID for authentication.
+	ClientSecretEnv string `json:"-" env:"DSV_CLIENT_SECRET,notEmpty"` // Client Secret for authentication.
+	RetrieveEnv     string `env:"DSV_RETRIEVE,notEmpty"`               // JSON formatted string with data to retrieve from DSV.
 }
 
 type SecretToRetrieve struct {
@@ -44,25 +45,14 @@ type SecretToRetrieve struct {
 
 // getEnvFileName helps retrieve and build a env file path that should contain
 // the resulting secrets. See [GitLab - Passing An Environment Variable to Another Job](https://docs.gitlab.com/ee/ci/variables/#pass-an-environment-variable-to-another-job)
-func (cfg *Config) getEnvFileName() (string, error) {
-	jobName, isSet := os.LookupEnv("CI_JOB_NAME")
-	if !isSet {
-		return "", fmt.Errorf("CI_JOB_NAME is not set")
-	}
-
-	projPath, isSet := os.LookupEnv("CI_PROJECT_PATH")
-	if !isSet {
-		return "", fmt.Errorf("CI_PROJECT_PATH is not set")
-	}
-
-	envFileName := filepath.Join("/builds/", projPath, jobName)
+func (cfg *Config) getEnvFileName() string {
+	envFileName := filepath.Join(cfg.CIProjectDirectory, cfg.CIJobName, "build.env")
 	pterm.Debug.Printfln("envfilename: %s", envFileName)
 	pterm.Success.Printfln("getEnvFileName() success")
-	return envFileName, nil
+	return envFileName
 }
 
 // configure Pterm settings for project based on the detected environment.
-// Github documents their special syntax here: https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions
 func (cfg *Config) configureLogging() {
 	pterm.Info.Println("configureLogging()")
 
@@ -100,20 +90,27 @@ func (cfg *Config) sendRequest(c HTTPClient, req *http.Request, out any) error {
 	return nil
 }
 
-func Run() error { //nolint:funlen,cyclop // funlen: this could use refactoring in future to break it apart more, but leaving as is at this time.
-	var err error
-	var retrievedValues []SecretToRetrieve
-
+func parseConfig() (Config, error) {
 	cfg := Config{}
 	cfg.configureLogging()
-
 	if err := env.Parse(&cfg, env.Options{
 		// Prefix: "DSV_",.
 	}); err != nil {
 		pterm.Error.Printfln("env.Parse() %+v", err)
-		return fmt.Errorf("unable to parse env vars: %w", err)
+		return Config{}, fmt.Errorf("unable to parse env vars: %w", err)
 	}
 	pterm.Success.Println("parsed environment variables")
+	return cfg, nil
+}
+
+func Run() error { //nolint:funlen,cyclop // funlen: this could use refactoring in future to break it apart more, but leaving as is at this time.
+	var err error
+	var retrievedValues []SecretToRetrieve
+
+	cfg, err := parseConfig()
+	if err != nil {
+		return err
+	}
 
 	if cfg.IsDebug {
 		pterm.Info.Println("DEBUG detected, setting debug output to enabled")
@@ -124,7 +121,6 @@ func Run() error { //nolint:funlen,cyclop // funlen: this could use refactoring 
 		pterm.Debug.Printfln("IsCI            : %v", cfg.IsCI)
 		pterm.Debug.Printfln("IsDebug         : %v", cfg.IsDebug)
 
-		pterm.Debug.Printfln("SetEnv          : %v", cfg.SetEnv)
 		pterm.Debug.Printfln("DomainEnv       : %v", cfg.DomainEnv)
 		pterm.Debug.Println("ClientIDEnv     : ** value exists, but not exposing in logs **")
 		pterm.Debug.Println("ClientSecretEnv : ** value exists, but not exposing in logs **")
@@ -147,8 +143,8 @@ func Run() error { //nolint:funlen,cyclop // funlen: this could use refactoring 
 	}
 	var envFile *os.File
 
-	// This function will only run if both is CI and SetEnv is detected.
-	if cfg.IsCI && cfg.SetEnv {
+	// This function will only run if is CI.
+	if cfg.IsCI {
 		envFile, err = OpenEnvFile(&cfg)
 		if err != nil {
 			pterm.Error.Printfln("unable to run OpenEnvFile: %v", err)
@@ -188,13 +184,11 @@ func Run() error { //nolint:funlen,cyclop // funlen: this could use refactoring 
 		pterm.Debug.Printfln("%q: Set output %q to value in %q", item.SecretPath, outputKey, item.SecretKey)
 		pterm.Success.Printfln("actionSetOutput success: %q", outputKey)
 
-		if cfg.SetEnv {
-			if err := ExportEnvVariable(envFile, outputKey, val); err != nil { // TODO: this needs to be correctly set to use the right output variable.
-				pterm.Error.Printfln("%q: unable to export env variable: %v", outputKey, err)
-				return fmt.Errorf("cannot set environment variable")
-			}
-			pterm.Success.Printfln("%q: Set env var %q to value in %q", item, strings.ToUpper(outputKey), item.SecretKey)
+		if err := ExportEnvVariable(envFile, outputKey, val); err != nil {
+			pterm.Error.Printfln("%q: unable to export env variable: %v", outputKey, err)
+			return fmt.Errorf("cannot set environment variable")
 		}
+		pterm.Success.Printfln("%q: Set env var %q to value in %q", item, strings.ToUpper(outputKey), item.SecretKey)
 	}
 	return nil
 }
@@ -266,17 +260,15 @@ func DSVGetSecret(client HTTPClient, apiEndpoint, accessToken string, item Secre
 
 // OpenEnvFile storing secrets that can extend to another job or task in Gitlab.
 // See [GitLab - Passing An Environment Variable to Another Job](https://docs.gitlab.com/ee/ci/variables/#pass-an-environment-variable-to-another-job)
-func OpenEnvFile(cfg *Config) (*os.File, error) {
+func OpenEnvFile(cfg *Config) (envFile *os.File, err error) {
 	pterm.Info.Println("OpenEnvFile()")
 
-	envFileName, err := cfg.getEnvFileName()
-	if err != nil {
-		return nil, fmt.Errorf("GITLAB_CI environment is not defined")
-	}
+	envFileName := cfg.getEnvFileName()
 	_, err = os.Stat(envFileName)
+
 	if err != nil {
-		pterm.Error.Printfln("unable to validate envFileName exists: %v", err)
-		return nil, fmt.Errorf("envFileName doesn't seem to exist: %w", err)
+		pterm.Warning.Printfln("unable to validate envFileName exists, so we'll need to create it: %v", err)
+		pterm.Warning.Printfln("unable to validate envFileName exists, so we'll need to create it: %v", err)
 	}
 	pterm.Success.Printfln("envfilepath: %s", envFileName)
 
@@ -287,7 +279,7 @@ func OpenEnvFile(cfg *Config) (*os.File, error) {
 		pterm.Info.Printfln("envFileName permission: %#o", fi.Mode().Perm())
 	}
 
-	envFile, err := os.OpenFile(envFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, PermissionReadWriteOwner) //nolint:nosnakecase // these are standard package values and ok to leave snakecase.
+	envFile, err = os.OpenFile(envFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, PermissionReadWriteOwner) //nolint:nosnakecase // these are standard package values and ok to leave snakecase.
 	if errors.Is(err, os.ErrNotExist) {
 		// See if we can provide some useful info on the existing permissions.
 		return nil, fmt.Errorf("envfile doesn't exist or has denied permission %s: %w", envFileName, err)

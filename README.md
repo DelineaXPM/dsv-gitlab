@@ -1,5 +1,7 @@
 # Repo
 
+[![codecov](https://codecov.io/gh/delineaxpm/dsv-gitlab/branch/main/graph/badge.svg?token=FPHYYO5ZF2)](https://codecov.io/gh/delineaxpm/dsv-gitlab)
+
 Delinea DevOps Secrets Vault (DSV) CI plugin allows you to access and reference your Secrets data available for use in GitLab Jobs.
 
 ## Getting Started
@@ -18,6 +20,8 @@ To test this out, you'll have to create variables in GitLab under: `https://gitl
 This plugin uses authentication based on Client Credentials, i.e. via Client ID and Client Secret.
 
 ```shell
+dsvprofile=
+
 rolename="gitlab-dsv-gitlab-tests"
 secretpath="ci:tests:dsv-gitlab"
 secretpathclient="clients:${secretpath}"
@@ -26,7 +30,7 @@ desc="a secret for testing operation of secrets against dsv-gitlab"
 clientcredfile=".cache/${rolename}.json"
 clientcredname="${rolename}"
 
-dsv role create --name "${rolename}"
+dsv role create --name "${rolename}" --profile $dsvprofile
 
 # Option 1: Less Optimal - Save Credential to local json for testing
 # dsv client create --role "${rolename}" --out "file:${clientcredfile}"

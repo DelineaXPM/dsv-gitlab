@@ -4,12 +4,14 @@ module github.com/DelineaXPM/dsv-gitlab
 go 1.19
 
 require (
+	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/bitfield/script v0.20.2
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/magefile/mage v1.14.0
 	github.com/matryer/is v1.4.0
 	github.com/pterm/pterm v0.12.49
 	github.com/sheldonhull/magetools v0.0.12
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -21,14 +23,18 @@ require (
 	github.com/gookit/color v1.5.2 // indirect
 	github.com/itchyny/gojq v0.12.7 // indirect
 	github.com/itchyny/timefmt-go v0.1.3 // indirect
+	github.com/kballard/go-shellquote v0.0.0-20180428030007-95032a82bc51 // indirect
 	github.com/lithammer/fuzzysearch v1.1.5 // indirect
 	github.com/logrusorgru/aurora v2.0.3+incompatible // indirect
+	github.com/mattn/go-colorable v0.1.4 // indirect
+	github.com/mattn/go-isatty v0.0.14 // indirect
 	github.com/mattn/go-runewidth v0.0.14 // indirect
+	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
 	github.com/rivo/uniseg v0.4.2 // indirect
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/ztrue/tracerr v0.3.0 // indirect
 	golang.org/x/mod v0.6.0-dev.0.20220419223038-86c51ed26bb4 // indirect
-	golang.org/x/sys v0.0.0-20221013171732-95e765b1cc43 // indirect
-	golang.org/x/term v0.0.0-20220919170432-7a66f970e087 // indirect
-	golang.org/x/text v0.3.8 // indirect
+	golang.org/x/sys v0.1.0 // indirect
+	golang.org/x/term v0.0.0-20221017184919-83659145692c // indirect
+	golang.org/x/text v0.4.0 // indirect
 )

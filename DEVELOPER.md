@@ -2,6 +2,16 @@
 
 - Devcontainer configuration included for Codespaces or [Remote Container](https://code.visualstudio.com/docs/remote/containers)
 
+## Integration Testing
+
+Run the following tasks:
+
+- `mage test:setuplocal`
+- `mage test:integration`
+
+You'll need to have DSV credentials to use this, following the readme example.
+This will generate a test variables file that will then use `gitlab-ci-local` for testing.
+
 ## Run Tasks
 
 Run `trunk fmt --all; trunk check --all` prior to creating pr and you'll have the majority of tests locally validated that would normally require you to wait on github actions to complete.

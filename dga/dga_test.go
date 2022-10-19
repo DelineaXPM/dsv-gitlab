@@ -326,25 +326,24 @@ func TestDsvGetSecret(t *testing.T) {
 func TestOpenEnvFile(t *testing.T) {
 	// TODO: https://github.com/spf13/afero 👉🏻 look at abstraction so we can easily test filesystem calls.
 	pterm.EnableDebugMessages()
-	pterm.DisableOutput()
+
+	// pterm.DisableOutput()
 	is := is.New(t)
 	const cacheDir = ".cache"
+	const integrationTestName = "integration-test"
 	const everyoneReadWriteExec = 0o777
 	is.NoErr(os.MkdirAll(cacheDir, everyoneReadWriteExec))
-	validSecretFile := filepath.Join(cacheDir, ".valid-secret-file")
-	invalidSecretFile := filepath.Join(cacheDir, ".invalid-secret-file")
-	unreadableSecretFile := filepath.Join(cacheDir, ".unreadable-secret-file")
-	// _, err := os.Create(validSecretFile)
-	// is.NoErr(err) // Creating a local file should succeed.
-	// Trunk-ignore(golangci-lint/gosec).
+	projectDirectory := filepath.Join(cacheDir, integrationTestName)
+	is.NoErr(os.MkdirAll(projectDirectory, everyoneReadWriteExec))
 
-	is.NoErr(os.WriteFile(validSecretFile, []byte("foo=bar"), everyoneReadWriteExec))      // Writing to a local file with unreadable set should succeed.
-	is.NoErr(os.WriteFile(unreadableSecretFile, []byte("foo=bar"), everyoneReadWriteExec)) // Writing to a local file should succeed.
-	is.NoErr(os.Chmod(unreadableSecretFile, os.FileMode(0o111)))                           // Should set permissions to write only.
+	t.Setenv("CI_PROJECT_DIR", projectDirectory)
+	t.Setenv("CI_JOB_NAME", integrationTestName)
+
+	validSecretFile := filepath.Join(projectDirectory, "build.env")
+	is.NoErr(os.WriteFile(validSecretFile, []byte("foo=bar"), everyoneReadWriteExec)) // Writing to a local file with unreadable set should succeed.
 
 	defer func() {
-		is.NoErr(os.Chmod(unreadableSecretFile, dga.PermissionReadWriteOwner)) // Should reset cachedir permissions to default.
-		is.NoErr(os.RemoveAll(cacheDir))                                       // Should remove cachedir.
+		is.NoErr(os.RemoveAll(cacheDir)) // Should remove cachedir.
 	}()
 
 	cases := []struct {
@@ -354,41 +353,10 @@ func TestOpenEnvFile(t *testing.T) {
 		shouldFail bool
 	}{
 		{
-			name: "githubCI should fail when required variables",
+			name: "gitlab should succeed when file doesn't exist since it will create it",
 			envs: map[string]string{
-				"CI_JOB_NAME":     "",
-				"CI_PROJECT_PATH": "",
-				"GITHUB_ENV":      "",
-			},
-			isCI:       true,
-			shouldFail: true,
-		},
-		{
-			name: "githubCI should fail when unable to open envfile",
-			envs: map[string]string{
-				"CI_JOB_NAME":     "",
-				"CI_PROJECT_PATH": "",
-				"GITHUB_ENV":      invalidSecretFile,
-			},
-			isCI:       true,
-			shouldFail: true,
-		},
-		{
-			name: "githubCI should fail when file is not readable",
-			envs: map[string]string{
-				"CI_JOB_NAME":     "",
-				"CI_PROJECT_PATH": "",
-				"GITHUB_ENV":      unreadableSecretFile,
-			},
-			isCI:       true,
-			shouldFail: true,
-		},
-		{
-			name: "githubCI should succeed when file exists and is writeable",
-			envs: map[string]string{
-				"CI_JOB_NAME":     "",
-				"CI_PROJECT_PATH": "",
-				"GITHUB_ENV":      validSecretFile,
+				"CI_JOB_NAME":    cacheDir,
+				"CI_PROJECT_DIR": projectDirectory,
 			},
 			isCI:       true,
 			shouldFail: false,
@@ -403,7 +371,7 @@ func TestOpenEnvFile(t *testing.T) {
 				IsCI: tc.isCI,
 			}
 			for key, val := range tc.envs {
-				os.Setenv(key, val)
+				t.Setenv(key, val)
 			}
 			_, err := dga.OpenEnvFile(cfg)
 			if tc.shouldFail {

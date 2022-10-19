@@ -1,0 +1,5 @@
+# Overrides .gitlab-ci.yml as the default git ci/cd file
+FILE=./examples/.gitlab-ci.yml
+
+# Always runs needed jobs, when gitlab-ci-local <job-name> is called
+NEEDS=true # --needs
