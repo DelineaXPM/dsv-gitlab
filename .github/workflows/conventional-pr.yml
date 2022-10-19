@@ -6,7 +6,7 @@ on:
     types:
       - opened
       - edited
-      # - synchronize # noisy, don't run this all the time
+      - synchronize
 jobs:
   main:
     name: conventional-commit-pr-title
