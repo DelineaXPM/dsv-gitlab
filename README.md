@@ -73,6 +73,30 @@ dsv policy create \
 
 See [integration.yml](examples/.gitlab-ci.yml) for an example of how to use this to retrieve secrets and use outputs on other tasks.
 
+### Retrieve 2 Values from Same Secret
+
+The json expects an array, so just add a new line.
+
+```yaml
+retrieve: |
+  [
+   {"secretPath": "ci:tests:dsv-github-action:secret-01", "secretKey": "value1", "outputVariable": "RETURN_VALUE_1"},
+   {"secretPath": "ci:tests:dsv-github-action:secret-01", "secretKey": "value2", "outputVariable": "RETURN_VALUE_2"}
+  ]
+```
+
+### Retrieve 2 Values from Different Secrets
+
+> Note: Make sure your generated client credentials are associated a policy that has rights to read the different secrets.
+
+```yaml
+retrieve: |
+  [
+   {"secretPath": "ci:tests:dsv-github-action:secret-01", "secretKey": "value1", "outputVariable": "RETURN_VALUE_1"},
+   {"secretPath": "ci:tests:dsv-github-action:secret-02", "secretKey": "value1", "outputVariable": "RETURN_VALUE_2"}
+  ]
+```
+
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
