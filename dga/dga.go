@@ -46,7 +46,7 @@ type SecretToRetrieve struct {
 // getEnvFileName helps retrieve and build a env file path that should contain
 // the resulting secrets. See [GitLab - Passing An Environment Variable to Another Job](https://docs.gitlab.com/ee/ci/variables/#pass-an-environment-variable-to-another-job)
 func (cfg *Config) getEnvFileName() string {
-	envFileName := filepath.Join(cfg.CIProjectDirectory, cfg.CIJobName, "build.env")
+	envFileName := filepath.Join(cfg.CIProjectDirectory, cfg.CIJobName)
 	pterm.Debug.Printfln("envfilename: %s", envFileName)
 	pterm.Success.Printfln("getEnvFileName() success")
 	return envFileName
@@ -262,23 +262,7 @@ func DSVGetSecret(client HTTPClient, apiEndpoint, accessToken string, item Secre
 // See [GitLab - Passing An Environment Variable to Another Job](https://docs.gitlab.com/ee/ci/variables/#pass-an-environment-variable-to-another-job)
 func OpenEnvFile(cfg *Config) (envFile *os.File, err error) {
 	pterm.Info.Println("OpenEnvFile()")
-
 	envFileName := cfg.getEnvFileName()
-	_, err = os.Stat(envFileName)
-
-	if err != nil {
-		pterm.Warning.Printfln("unable to validate envFileName exists, so we'll need to create it: %v", err)
-		pterm.Warning.Printfln("unable to validate envFileName exists, so we'll need to create it: %v", err)
-	}
-	pterm.Success.Printfln("envfilepath: %s", envFileName)
-
-	// Confirm permissions of file.
-	if fi, err := os.Lstat(envFileName); err != nil {
-		pterm.Warning.Println("unable to read permissions of target file")
-	} else {
-		pterm.Info.Printfln("envFileName permission: %#o", fi.Mode().Perm())
-	}
-
 	envFile, err = os.OpenFile(envFileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, PermissionReadWriteOwner) //nolint:nosnakecase // these are standard package values and ok to leave snakecase.
 	if errors.Is(err, os.ErrNotExist) {
 		// See if we can provide some useful info on the existing permissions.
