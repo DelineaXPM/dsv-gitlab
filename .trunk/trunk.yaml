@@ -76,5 +76,8 @@ lint:
         - vendor/*
         - .changes/*
         - 'charts/*/templates/*'
+    - linters: [yamllint]
+      paths:
+        - .changes/unreleased/*.yaml
     # - linters: [prettier, yamllint]
     #   paths:
