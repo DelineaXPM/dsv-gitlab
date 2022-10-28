@@ -1,4 +1,4 @@
-# Repo
+# Delinea DevOps Secrets Vault GitLab Integration
 
 [![codecov](https://codecov.io/gh/delineaxpm/dsv-gitlab/branch/main/graph/badge.svg?token=FPHYYO5ZF2)](https://codecov.io/gh/delineaxpm/dsv-gitlab)
 
