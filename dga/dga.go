@@ -57,10 +57,7 @@ func (cfg *Config) getEnvFileName() string {
 // configure Pterm settings for project based on the detected environment.
 func (cfg *Config) configureLogging() {
 	pterm.Info.Println("configureLogging()")
-
 	pterm.Error = *pterm.Error.WithShowLineNumber().WithLineNumberOffset(1) //nolint:reassign // changing prefix later, not an issue.
-	pterm.Warning = *pterm.Warning.WithShowLineNumber().WithLineNumberOffset(1)
-	pterm.Warning = *pterm.Error.WithShowLineNumber().WithLineNumberOffset(1)
 	pterm.Success.Printfln("configureLogging() success")
 }
 
@@ -106,9 +103,6 @@ func parseConfig() (Config, error) {
 }
 
 func Run() error { //nolint:funlen,cyclop // funlen: this could use refactoring in future to break it apart more, but leaving as is at this time.
-	var err error
-	var retrievedValues []SecretToRetrieve
-
 	cfg, err := parseConfig()
 	if err != nil {
 		return err
@@ -129,7 +123,7 @@ func Run() error { //nolint:funlen,cyclop // funlen: this could use refactoring 
 		pterm.Debug.Printfln("RetrieveEnv     : %v", cfg.RetrieveEnv)
 	}
 
-	retrievedValues, err = ParseRetrieve(cfg.RetrieveEnv)
+	retrievedValues, err := ParseRetrieve(cfg.RetrieveEnv)
 	if err != nil {
 		pterm.Error.Printfln("run failure: %v", err)
 		return err
@@ -143,9 +137,8 @@ func Run() error { //nolint:funlen,cyclop // funlen: this could use refactoring 
 		pterm.Error.Printfln("authentication failure: %v", err)
 		return fmt.Errorf("unable to get access token")
 	}
-	var envFile *os.File
 
-	// This function will only run if is CI.
+	var envFile *os.File
 	if cfg.IsCI {
 		envFile, err = OpenEnvFile(&cfg)
 		if err != nil {
