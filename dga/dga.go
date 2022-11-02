@@ -37,6 +37,8 @@ type Config struct {
 	RetrieveEnv     string `env:"DSV_RETRIEVE,notEmpty"`               // JSON formatted string with data to retrieve from DSV.
 }
 
+// SecretToRetrieve defines JSON format of elements that expected in DSV_RETRIEVE list.
+//nolint:tagliatelle // Here 'camel' casing is used instead of 'kebab'.
 type SecretToRetrieve struct {
 	SecretPath     string `json:"secretPath"`
 	SecretKey      string `json:"secretKey"`
@@ -181,8 +183,6 @@ func Run() error { //nolint:funlen,cyclop // funlen: this could use refactoring 
 		}
 
 		outputKey := item.OutputVariable
-		pterm.Debug.Printfln("%q: Set output %q to value in %q", item.SecretPath, outputKey, item.SecretKey)
-		pterm.Success.Printfln("actionSetOutput success: %q", outputKey)
 
 		if err := ExportEnvVariable(envFile, outputKey, val); err != nil {
 			pterm.Error.Printfln("%q: unable to export env variable: %v", outputKey, err)
@@ -276,10 +276,10 @@ func OpenEnvFile(cfg *Config) (envFile *os.File, err error) {
 }
 
 func ExportEnvVariable(envFile *os.File, key, val string) error {
-	pterm.Info.Println("actionsExportVariable()")
+	pterm.Info.Println("ExportEnvVariable()")
 	if _, err := envFile.WriteString(fmt.Sprintf("%s=%s\n", strings.ToUpper(key), val)); err != nil {
 		return fmt.Errorf("could not update %s environment file: %w", envFile.Name(), err)
 	}
-	pterm.Success.Printfln("actionsExportVariable() success")
+	pterm.Success.Printfln("ExportEnvVariable() success")
 	return nil
 }
