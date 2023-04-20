@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	env "github.com/caarlos0/env/v6"
+	env "github.com/caarlos0/env/v8"
 	"github.com/pterm/pterm"
 )
 
@@ -92,9 +92,7 @@ func (cfg *Config) sendRequest(c HTTPClient, req *http.Request, out any) error {
 func parseConfig() (Config, error) {
 	cfg := Config{}
 	cfg.configureLogging()
-	if err := env.Parse(&cfg, env.Options{
-		// Prefix: "DSV_",.
-	}); err != nil {
+	if err := env.Parse(&cfg); err != nil {
 		pterm.Error.Printfln("env.Parse() %+v", err)
 		return Config{}, fmt.Errorf("unable to parse env vars: %w", err)
 	}

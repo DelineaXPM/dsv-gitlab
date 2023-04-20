@@ -9,7 +9,7 @@ import (
 	survey "github.com/AlecAivazis/survey/v2"
 	"github.com/DelineaXPM/dsv-gitlab/magefiles/constants"
 	"github.com/bitfield/script"
-	"github.com/caarlos0/env/v6"
+	"github.com/caarlos0/env/v8"
 	"github.com/magefile/mage/mg"
 	"github.com/magefile/mage/sh"
 	"github.com/pterm/pterm"
@@ -192,7 +192,7 @@ func (Test) SetupLocal() error {
 	cfg := &TestConfig{}
 	opts := env.Options{RequiredIfNoDef: true}
 	// Load env vars.
-	if err := env.Parse(cfg, opts); err != nil {
+	if err := env.ParseWithOptions(cfg, opts); err != nil {
 		pterm.Error.Printfln("unable to parse required environment variables: %v", err)
 		return err
 	}
