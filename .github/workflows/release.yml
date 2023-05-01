@@ -14,8 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v3
-      - uses: aquaproj/aqua-installer@v1.2.0
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab # v3
+      - uses: aquaproj/aqua-installer@a39f721a15ed34ccbc85706e6e8ae8572c9ca9c6 # v1.2.0
         with:
           aqua_version: v1.33.0
           enable_aqua_install: true
@@ -29,7 +29,7 @@ jobs:
         run: |
           echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
       - name: Setup Golang caches
-        uses: actions/cache@v3
+        uses: actions/cache@88522ab9f39a2ea568f7027eddc7d8d8bc9d59c8 # v3
         with:
           path: |
             ${HOME}/.cache/go-build
@@ -42,7 +42,7 @@ jobs:
           # echo "${AQUA_ROOT_DIR:-${XDG_DATA_HOME:-$HOME/.local/share}/aquaproj-aqua}/bin:${PATH}"
           mage init
       - name: docker-login
-        uses: docker/login-action@v2 # renovate: tag=v2
+        uses: docker/login-action@f4ef78c080cd8ba55a85445d5b36e214a81df20a # v2
         with:
           username: ${{ secrets.DSV_DOCKER_USERNAME }}
           password: ${{ secrets.DSV_DOCKER_PASSWORD }}
