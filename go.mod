@@ -6,7 +6,7 @@ go 1.19
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.6
 	github.com/bitfield/script v0.20.2
-	github.com/caarlos0/env/v6 v6.10.1
+	github.com/caarlos0/env/v10 v10.0.0
 	github.com/magefile/mage v1.14.0
 	github.com/matryer/is v1.4.1
 	github.com/pterm/pterm v0.12.54
