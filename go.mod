@@ -3,15 +3,13 @@ module github.com/DelineaXPM/dsv-gitlab
 // Go 1.19 requried per url.JoinPath
 go 1.21
 
-toolchain go1.21.6
-
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/bitfield/script v0.22.0
 	github.com/caarlos0/env/v6 v6.10.1
 	github.com/magefile/mage v1.15.0
 	github.com/matryer/is v1.4.1
-	github.com/pterm/pterm v0.12.75
+	github.com/pterm/pterm v0.12.76
 	github.com/sheldonhull/magetools v1.0.1
 	gopkg.in/yaml.v3 v3.0.1
 )
