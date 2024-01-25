@@ -1,9 +1,9 @@
 ---
 name: release
 on:
-  # push:
-  #   tags:
-  #     - 'v*'
+  push:
+    branches: [main]
+    paths: [CHANGELOG.md] # your changelog file if different
   workflow_dispatch:
   workflow_call:
 concurrency:
