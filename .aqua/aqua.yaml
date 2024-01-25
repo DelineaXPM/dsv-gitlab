@@ -16,7 +16,7 @@ packages:
   - name: goreleaser/goreleaser@v1.23.0
     tags: ['release']
   - name: mvdan/gofumpt@v0.5.0
-  - name: golang.org/x/tools/gopls@v0.14.2
+  - name: golang.org/x/tools/gopls@gopls/v0.14.2
   - name: golang/tools/gorename@v0.17.0
   - name: golang/tools/stringer@v0.17.0
   - name: golang/tools/gomvpkg@v0.17.0
