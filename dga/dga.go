@@ -38,6 +38,7 @@ type Config struct {
 }
 
 // SecretToRetrieve defines JSON format of elements that expected in DSV_RETRIEVE list.
+//
 //nolint:tagliatelle // Here 'camel' casing is used instead of 'kebab'.
 type SecretToRetrieve struct {
 	SecretPath     string `json:"secretPath"`
