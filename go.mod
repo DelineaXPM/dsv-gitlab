@@ -3,6 +3,8 @@ module github.com/DelineaXPM/dsv-gitlab
 // Go 1.19 requried per url.JoinPath
 go 1.21
 
+toolchain go1.26.8
+
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/bitfield/script v0.22.0

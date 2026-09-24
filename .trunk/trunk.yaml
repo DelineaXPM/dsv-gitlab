@@ -45,7 +45,7 @@ lint:
     - osv-scanner@1.6.1
     - renovate@37.146.0
     - terrascan@1.18.11
-    - trivy@0.48.3
+    - trivy@0.74.0
     - trufflehog@3.63.11
     - git-diff-check
     - prettier@3.2.4
