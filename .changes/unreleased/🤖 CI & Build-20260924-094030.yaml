@@ -1,0 +1,3 @@
+kind: "\U0001F916 CI & Build"
+body: "Release workflow: actions/cache pinned to v4.3.0. The old pin used GitHub's retired cache service and failed every release run at setup. aqua-installer moved to v4.0.3: the old one could no longer verify aqua downloads after a Sigstore key change."
+time: 2026-09-24T09:40:30.827137-07:00
