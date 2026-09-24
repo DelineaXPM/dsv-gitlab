@@ -1,0 +1,3 @@
+kind: "\U0001F916 CI & Build"
+body: Release tooling migrated to goreleaser v2 (the aqua pin moved to v2.7.0 in 2025-03 without a config migration, so releases could not run). Goreleaser's Slack announce is disabled; the GitHub Slack app already posts releases.
+time: 2026-09-24T09:15:44.962373-07:00

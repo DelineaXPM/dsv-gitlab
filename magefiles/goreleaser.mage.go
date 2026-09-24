@@ -53,7 +53,7 @@ func BuildAll() error {
 		"release",
 		"--snapshot",
 		"--clean",
-		"--skip-publish",
+		"--skip=publish",
 	}
 	pterm.Debug.Printfln("goreleaser: %+v", releaserArgs)
 	return sh.RunV("goreleaser", releaserArgs...)
@@ -84,7 +84,7 @@ func Release() error {
 	releaserArgs := []string{
 		"release",
 		"--clean",
-		"--skip-validate",
+		"--skip=validate",
 		fmt.Sprintf("--release-notes=%s", cleanpath),
 	}
 	pterm.Debug.Printfln("goreleaser: %+v", releaserArgs)

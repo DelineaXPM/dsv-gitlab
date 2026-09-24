@@ -1,4 +1,5 @@
 ---
+version: 2
 project_name: dsv-gitlab
 dist: .artifacts/goreleaser
 env:
@@ -35,16 +36,16 @@ archives:
       {{- else }}{{ .Arch }}{{ end }}
       {{- if .Arm }}v{{ .Arm }}{{ end -}}
   - id: binaries
-    format: binary
+    formats: [binary]
 
 checksum:
   name_template: checksums.txt
   algorithm: sha256
   disable: false
 snapshot:
-  name_template: '{{ incpatch .Version }}-next'
+  version_template: '{{ incpatch .Version }}-next'
 changelog:
-  skip: false
+  disable: false
   sort: asc
   use: github
   groups:
@@ -101,7 +102,8 @@ dockers:
       - --label=org.opencontainers.image.version="{{ .Tag }}"
 announce:
   slack:
-    enabled: true
+    # Disabled: the GitHub Slack app already posts every GitHub release to the channel.
+    enabled: false
     # The name of the channel that the user selected as a destination for webhook messages.
     channel: '{{ .Env.SLACK_CHANNEL }}'
     message_template: ':github: {{ .ProjectName }} {{ .Tag }} is out. {{ .ReleaseURL }}'
