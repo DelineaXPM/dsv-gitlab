@@ -3,7 +3,7 @@ module github.com/DelineaXPM/dsv-gitlab
 // Go 1.19 requried per url.JoinPath
 go 1.25.0
 
-toolchain go1.26.10
+toolchain go1.26.11
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
@@ -37,6 +37,6 @@ require (
 	golang.org/x/mod v0.40.0 // indirect
 	golang.org/x/sys v0.44.0 // indirect
 	golang.org/x/term v0.16.0 // indirect
-	golang.org/x/text v0.39.0 // indirect
+	golang.org/x/text v0.41.0 // indirect
 	mvdan.cc/sh/v3 v3.6.0 // indirect
 )
